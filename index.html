@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美食雷达 · 每天值得吃的</title>
+<meta name="description" content="美食雷达：每天精选值得关注的美食动态——新店开业、本地美食、食谱与趋势，附推荐理由。">
+<style>
+  :root{
+    --bg:#faf5ec; --card:#fffdf8; --ink:#2b2118; --muted:#8a7a66;
+    --accent:#e8590c; --accent-soft:#fff0e3; --line:#eadfd0;
+    --green:#2f9e44; --gold:#f08c00;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{background:var(--bg); color:var(--ink); font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; line-height:1.7;}
+  .wrap{max-width:760px; margin:0 auto; padding:0 16px 64px;}
+  header.hero{padding:40px 0 8px; text-align:center;}
+  header.hero .logo{font-size:40px;}
+  header.hero h1{font-size:30px; letter-spacing:4px; margin:6px 0;}
+  header.hero h1 .dot{color:var(--accent);}
+  header.hero p.tag{color:var(--muted); font-size:14px;}
+  .datebar{display:flex; justify-content:center; gap:10px; align-items:center; margin:18px 0 6px; color:var(--muted); font-size:14px;}
+  .datebar .today{background:var(--ink); color:#fff; font-size:12px; padding:2px 10px; border-radius:20px;}
+  .stats{display:flex; justify-content:center; gap:22px; margin:14px 0 26px; flex-wrap:wrap;}
+  .stats div{text-align:center;}
+  .stats b{font-size:22px; color:var(--accent); display:block; line-height:1.2;}
+  .stats span{font-size:12px; color:var(--muted);}
+  .chips{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:20px;}
+  .chip{border:1px solid var(--line); background:var(--card); color:var(--muted); font-size:13px; padding:6px 14px; border-radius:20px; cursor:pointer;}
+  .chip.on{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .dayhead{margin:26px 0 12px; font-size:17px; font-weight:700; display:flex; align-items:center; gap:8px;}
+  .dayhead .count{font-size:12px; color:var(--muted); font-weight:400; background:var(--accent-soft); padding:2px 10px; border-radius:12px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; margin-bottom:14px; position:relative;}
+  .card .rank{position:absolute; top:14px; right:16px; font-size:12px; color:var(--muted);}
+  .card h3{font-size:17px; line-height:1.5; padding-right:34px; margin-bottom:6px;}
+  .card h3 a{color:var(--ink); text-decoration:none;}
+  .card h3 a:hover{color:var(--accent); text-decoration:underline;}
+  .meta{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px; font-size:12px;}
+  .heat{background:#ffe8cc; color:#d9480f; font-weight:700; padding:1px 9px; border-radius:12px;}
+  .heat::before{content:"🔥";}
+  .cat{background:var(--accent-soft); color:var(--accent); padding:1px 9px; border-radius:12px;}
+  .src{color:var(--muted);}
+  .sum{font-size:14px; color:#4a3f33; margin-bottom:10px;}
+  .why{background:#fff8ef; border-left:3px solid var(--gold); padding:10px 12px; font-size:13.5px; border-radius:0 8px 8px 0;}
+  .why b{color:var(--gold);}
+  .tabbar{display:flex; justify-content:center; gap:0; margin:30px auto 6px; border:1px solid var(--line); border-radius:24px; overflow:hidden; width:max-content; background:var(--card);}
+  .tabbar button{border:0; background:transparent; padding:10px 26px; font-size:15px; cursor:pointer; color:var(--muted);}
+  .tabbar button.on{background:var(--ink); color:#fff;}
+  .meal-day{margin-bottom:16px;}
+  .meal-day h4{font-size:15px; margin-bottom:8px;}
+  .meal{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin-bottom:8px; font-size:14px;}
+  .meal .t{font-size:12px; color:var(--accent); font-weight:700; margin-right:8px;}
+  .empty{background:var(--card); border:1px dashed var(--line); border-radius:14px; padding:28px; text-align:center; color:var(--muted); font-size:14px;}
+  footer{margin-top:48px; text-align:center; color:var(--muted); font-size:12px; border-top:1px solid var(--line); padding-top:20px;}
+  footer a{color:var(--accent);}
+  .hide{display:none!important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="logo">🍜</div>
+    <h1>美食雷达<span class="dot">.</span></h1>
+    <p class="tag">每天值得看的美食动态 —— 新店、优惠、食谱与趋势，附推荐理由</p>
+  </header>
+
+  <div class="tabbar">
+    <button id="tabHot" class="on" onclick="showTab('hot')">🔥 每日精选</button>
+    <button id="tabMeal" onclick="showTab('meal')">🍱 我的餐桌</button>
+  </div>
+
+  <section id="paneHot">
+    <div class="datebar"><span class="today" id="todayTag">今天</span><span id="dateLine"></span></div>
+    <div class="stats" id="stats"></div>
+    <div class="chips" id="chips"></div>
+    <div id="feed"></div>
+  </section>
+
+  <section id="paneMeal" class="hide">
+    <div class="datebar"><span class="today">记录</span><span>每天做了什么、吃了什么，都在这里</span></div>
+    <div id="meals"></div>
+  </section>
+
+  <footer>
+    美食雷达 · 内容每日更新 · 数据来源为公开信源，价格与营业信息以商家为准<br>
+    我的餐食记录同步自 Google Drive「<a href="#" onclick="return false">美食日记</a>」文件夹
+  </footer>
+</div>
+
+<script src="data.js"></script>
+<script src="meals.js"></script>
+<script>
+const DATA = window.FOOD_RADAR || [];
+const MEALS = window.MY_MEALS || [];
+let activeCat = "全部";
+
+function showTab(which){
+  document.getElementById('tabHot').classList.toggle('on', which==='hot');
+  document.getElementById('tabMeal').classList.toggle('on', which==='meal');
+  document.getElementById('paneHot').classList.toggle('hide', which!=='hot');
+  document.getElementById('paneMeal').classList.toggle('hide', which!=='meal');
+}
+
+function renderHot(){
+  const latest = DATA[0];
+  if(!latest){ document.getElementById('feed').innerHTML = '<div class="empty">今天的内容还在准备中 🍳</div>'; return; }
+  const d = latest.date, wd = latest.weekday || "";
+  document.getElementById('dateLine').textContent = d.replace(/-/g,"年").replace(/(\d{4})年(\d{2})年/,"$1年") + " " + wd;
+  // 修复日期显示
+  const parts = d.split("-");
+  document.getElementById('dateLine').textContent = `${parts[0]}年${parts[1]}月${parts[2]}日 ${wd}`;
+
+  const cats = ["全部", ...new Set(latest.items.map(i=>i.cat))];
+  document.getElementById('chips').innerHTML = cats.map(c=>
+    `<button class="chip${c===activeCat?' on':''}" onclick="setCat('${c}')">${c}</button>`).join("");
+
+  const items = latest.items.filter(i=>activeCat==="全部"||i.cat===activeCat)
+    .sort((a,b)=>b.heat-a.heat);
+  document.getElementById('stats').innerHTML =
+    `<div><b>${latest.items.length}</b><span>今日精选</span></div>
+     <div><b>${cats.length-1}</b><span>覆盖分类</span></div>
+     <div><b>${Math.max(...latest.items.map(i=>i.heat))}</b><span>最高热度</span></div>`;
+
+  document.getElementById('feed').innerHTML =
+    `<div class="dayhead">${parts[1]}月${parts[2]}日 ${wd} <span class="count">${items.length} 条</span></div>` +
+    items.map((it,idx)=>`
+    <article class="card">
+      <span class="rank">#${idx+1}</span>
+      <h3><a href="${it.url}" target="_blank" rel="noopener">${it.title}</a></h3>
+      <div class="meta"><span class="heat">${it.heat}</span><span class="cat">${it.cat}</span><span class="src">来源：${it.source}</span></div>
+      <p class="sum">${it.summary}</p>
+      <div class="why"><b>推荐理由</b> ${it.reason}</div>
+    </article>`).join("");
+}
+
+function setCat(c){ activeCat = c; renderHot(); }
+
+function renderMeals(){
+  const box = document.getElementById('meals');
+  if(!MEALS.length){
+    box.innerHTML = `<div class="empty">还没有餐食记录 🍚<br>每天告诉我你做了什么、吃了什么（发照片也可以），<br>我会记到 Google Drive「美食日记」，并同步到这里。</div>`;
+    return;
+  }
+  box.innerHTML = [...MEALS].reverse().map(d=>`
+    <div class="meal-day"><h4>📅 ${d.date}</h4>
+    ${d.meals.map(m=>`<div class="meal"><span class="t">${m.time}</span>${m.text}</div>`).join("")}
+    </div>`).join("");
+}
+
+renderHot();
+renderMeals();
+</script>
+</body>
+</html>
